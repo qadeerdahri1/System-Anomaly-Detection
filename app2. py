@@ -1,0 +1,33 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+from datetime import datetime
+from core_logic import process_data, detect_anomalies
+from ui_visuals import plot_anomalies, plot_distribution
+
+st.set_page_config(page_title="System Anomaly Detector", layout="wide")
+st.title("🔍 Real-Time System Anomaly Detection")
+
+st.sidebar.header("Settings")
+threshold = st.sidebar.slider("Anomaly Sensitivity", 1.0, 5.0, 3.0)
+uploaded_file = st.sidebar.file_uploader("Upload CSV file", type=["csv"])
+
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    
+    processed_df = process_data(df)
+    anomalies = detect_anomalies(processed_df, threshold)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("Anomaly Plot")
+        plot_anomalies(processed_df, anomalies)
+    with col2:
+        st.subheader("Data Distribution")
+        plot_distribution(processed_df)
+    
+    st.subheader("Detected Anomalies")
+    st.dataframe(anomalies)
+else:
+    st.info("Please upload a CSV file to begin")
